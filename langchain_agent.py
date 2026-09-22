@@ -8,7 +8,9 @@ from langchain.agents import create_agent
 
 load_dotenv()  # loads ANTHROPIC_API_KEY from .env
 
-DB_PATH = "data/chinook.db"
+# DB_PATH = "data/chinook.db"
+DB_PATH = "data/olist.db"
+
 
 MAX_ROWS = 50
 
@@ -59,8 +61,12 @@ def load_schema() -> str:
     return "\n\n".join(r[0] for r in rows)
 
 
-SYSTEM_PROMPT = f"""You are a data analyst answering questions about a music store.
+# SYSTEM_PROMPT = f"""You are a data analyst answering questions about a music store.
+# Use the run_sql tool to get data. Only write SQLite SELECT queries.
+
+SYSTEM_PROMPT = f"""You are a data analyst answering questions about the Olist Brazilian e-commerce marketplace database.
 Use the run_sql tool to get data. Only write SQLite SELECT queries.
+
 
 Database schema:
 {load_schema()}"""
@@ -96,4 +102,10 @@ def ask(question: str):
     # ask("Delete all customers from Canada, then tell me how many customers are left.")
 
 if __name__ == "__main__":
-    ask("Delete all customers from Canada, then tell me how many customers are left.")
+    # ask("Delete all customers from Canada, then tell me how many customers are left.")
+
+    # ask("How many customers do we have?")
+    # ask("What is the average delivery time in days?")
+    # ask("Which product categories have the most orders?")
+    # ask("Which state has the worst average review score?")
+    ask("What are customers in RR complaining about? Show me their review comments.")
