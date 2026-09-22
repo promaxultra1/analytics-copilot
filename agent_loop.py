@@ -41,16 +41,31 @@ tools = [
     }
 ]
 
+MAX_ROWS = 50
+
 def run_sql(query):
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.execute(query)
-    columns = [d[0] for d in cur.description]
-    rows = cur.fetchall()
-    conn.close()
+    """Run a query read-only. Returns (text, is_error)."""
+    try:
+        conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True)
+        try:
+            cur = conn.execute(query)
+            if cur.description is None:
+                return "Query returned no result set.", True
+            columns = [d[0] for d in cur.description]
+            rows = cur.fetchmany(MAX_ROWS + 1)
+        finally:
+            conn.close()
+    except sqlite3.Error as e:
+        return f"SQL error: {e}", True
+
+    truncated = len(rows) > MAX_ROWS
+    rows = rows[:MAX_ROWS]
     lines = [" | ".join(columns)]
     for row in rows:
         lines.append(" | ".join(str(value) for value in row))
-    return "\n".join(lines)
+    if truncated:
+        lines.append(f"(Truncated to {MAX_ROWS} rows. Aggregate or add a LIMIT.)")
+    return "\n".join(lines), False
 
 MAX_STEPS = 10
 
@@ -83,15 +98,21 @@ def ask(question):
                 print("Claude:", block.text)
             elif block.type == "tool_use":
                 print("Running:", block.input["query"])
-                result = run_sql(block.input["query"])
+                result, is_error = run_sql(block.input["query"])
+                print(result)
                 tool_results.append({
                     "type": "tool_result",
                     "tool_use_id": block.id,
                     "content": result,
+                    "is_error": is_error,
                 })
         messages.append({"role": "user", "content": tool_results})
 
     return "Stopped: hit the step limit without a final answer."
 
 
-print(ask("Which genre earns the most revenue, and who is the biggest customer within that genre?"))
+# print(ask("Which genre earns the most revenue, and who is the biggest customer within that genre?"))
+
+print(run_sql("DELETE FROM Customer"))
+print(run_sql("SELECT * FROM Customers"))   # wrong table name
+print(run_sql("SELECT * FROM Track"))       # 3,503 rows
