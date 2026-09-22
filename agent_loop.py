@@ -113,6 +113,8 @@ def ask(question):
 
 # print(ask("Which genre earns the most revenue, and who is the biggest customer within that genre?"))
 
-print(run_sql("DELETE FROM Customer"))
-print(run_sql("SELECT * FROM Customers"))   # wrong table name
-print(run_sql("SELECT * FROM Track"))       # 3,503 rows
+# print(run_sql("DELETE FROM Customer"))
+# print(run_sql("SELECT * FROM Customers"))   # wrong table name
+# print(run_sql("SELECT * FROM Track"))       # 3,503 rows
+
+print(ask("Delete all customers from Canada, then tell me how many customers are left."))
